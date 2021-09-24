@@ -21,12 +21,7 @@ LOGIN_ENV_VAR_NAME = 'MA_APIC_LOGIN'
 PASSWORD_ENV_VAR_NAME = 'MA_APIC_PASSWORD'
 
 # Configure the logger
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s\t%(asctime)s\t%(message)s',
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-
+logging.basicConfig(level=logging.INFO, format='%(levelname)s\t%(asctime)s\t%(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
 def execute_command(current_dir, args):
     """
@@ -81,18 +76,13 @@ def execute_command(current_dir, args):
         print('\nOperation is canceled')
         return 3
 
-
 def resolve_user_credentials(args, credentials_config):
     user_login = get_credential_item('login', args, LOGIN_ENV_VAR_NAME, 'ma_apic_login', credentials_config)
     user_password = get_credential_item('password', args, PASSWORD_ENV_VAR_NAME, 'ma_apic_password', credentials_config)
 
-    result = SimpleNamespace(
-        login=user_login,
-        password=user_password
-    )
+    result = SimpleNamespace(login=user_login, password=user_password)
 
     return result
-
 
 def validate_user_credentials(user_credentials):
     resolve_message = \
@@ -108,7 +98,6 @@ def validate_user_credentials(user_credentials):
     if not user_credentials.login:
         raise ApicError(f"User password is empty. \n{resolve_message}")
 
-
 def resolve_common_option_executor(args):
     if args.test_connect:
         return cmn_opt_exec_test_connect
@@ -116,7 +105,6 @@ def resolve_common_option_executor(args):
         return cmn_opt_exec_version
 
     return None
-
 
 def resolve_is_command_executor(args):
     is_command_name = get_arg(args, 'is_command_name')
@@ -129,14 +117,12 @@ def resolve_is_command_executor(args):
 
     return result
 
-
 def get_credentials_config():
     credentials_file_path = get_credentials_file_path()
     if not credentials_file_path:
         return None
     result = ConfigFactory.parse_file(credentials_file_path)
     return result
-
 
 def get_credentials_file_path():
     credentials_config_dir = os.path.join('~', '.ma')
@@ -151,14 +137,12 @@ def get_credentials_file_path():
 
     return result
 
-
 def get_app_config():
     app_config_file_path = get_app_config_file_path()
     if not app_config_file_path:
         return None
     result = ConfigFactory.parse_file(app_config_file_path)
     return result
-
 
 def validate_app_config(app_config):
     app_config_dir = get_app_config_dir()
@@ -169,7 +153,6 @@ def validate_app_config(app_config):
 
     if not app_config:
         raise ApicError(f"Configuration is empty. {resolve_message}")
-
 
 def get_app_config_file_path():
     app_config_dir = get_app_config_dir()
@@ -185,14 +168,12 @@ def get_app_config_file_path():
 
     return result
 
-
 def get_app_config_dir():
     result = os.path.join('~', '.ma')
     result = os.path.expanduser(result)
     if not os.path.isdir(result):
         os.makedirs(result, exist_ok=True)
     return result
-
 
 def affirm_config_file(file_name, app_config_dir, default_config_dir, destination_file_name=None):
     if not destination_file_name:
@@ -205,7 +186,6 @@ def affirm_config_file(file_name, app_config_dir, default_config_dir, destinatio
         shutil.copy(default_file_path, result)
 
     return result
-
 
 def affirm_app_config_file(app_config_dir):
     result = os.path.join(app_config_dir, 'application.conf')
@@ -227,7 +207,6 @@ def affirm_app_config_file(app_config_dir):
 
     return result
 
-
 def affirm_prd_data_conf_file(app_config_dir):
     result = os.path.join(app_config_dir, 'env_data.conf')
     if not os.path.isfile(result):
@@ -242,7 +221,6 @@ def affirm_prd_data_conf_file(app_config_dir):
             ])
 
     return result
-
 
 def get_credential_item(item_name, args, env_var_name, credentials_config_item_name, credentials_config):
     # Try to get credential item from parsed command-line arguments
@@ -263,16 +241,13 @@ def get_credential_item(item_name, args, env_var_name, credentials_config_item_n
     # There is no more supported sources of configuration
     return None
 
-
 def get_credential_item_from_args(item_name, args):
     result = args.__dict__.get(item_name)
     return result
 
-
 def get_credential_item_from_env_var(env_var_name):
     result = os.environ.get(env_var_name)
     return result
-
 
 def get_credential_item_from_credentials_config(item_name, credentials_config):
     if not credentials_config:
@@ -281,11 +256,9 @@ def get_credential_item_from_credentials_config(item_name, credentials_config):
     result = get_config_item(credentials_config, item_name)
     return result
 
-
 def get_item_from_args(item_name, args):
     result = args.__dict__.get(item_name)
     return result
-
 
 def cmd_exec_import(current_dir, args, user_credentials, app_config):
     # Get/resolve arguments
@@ -315,22 +288,18 @@ def cmd_exec_import(current_dir, args, user_credentials, app_config):
 
         # Step 2.1: Schedule a job to move files from raw files location to processing location
         file_info = files_info[0]
-        job_id = ds_client.import_file(
-            file_management_file_id=file_info['id'],
-            job_name=arg_job_name,
-            overwrite=arg_overwrite)
-        logging.info(
-            f"Moving input file '{file_info['filename']}' from raw files location "
-            f"to the processing location has started (job id: '{job_id}').")
+        job_id = ds_client.import_file(file_management_file_id=file_info['id'],
+                                       job_name=arg_job_name,
+                                       overwrite=arg_overwrite)
+        logging.info(f"Moving input file '{file_info['filename']}' from raw files location "
+                     f"to the processing location has started (job id: '{job_id}').")
 
         # Step 2.2: Wait until file moving is done
         job_final_status = job_wait(js_client, job_id, default_job_wait_timeout)
         # Step 2.3: Validate job status. If job failed, stop processing and log error.
         validate_job(job_id, job_final_status, fms_client, arg_error_files_dir)
-        logging.info(
-            f"Moving input file '{file_info['filename']}' from raw files location "
-            f"to the processing location has finished (job id: '{job_id}').")
-
+        logging.info(f"Moving input file '{file_info['filename']}' from raw files location "
+                     f"to the processing location has finished (job id: '{job_id}').")
 
 def cmd_exec_analysis(current_dir, args, user_credentials, app_config):
     # Get/resolve arguments
@@ -359,14 +328,10 @@ def cmd_exec_analysis(current_dir, args, user_credentials, app_config):
             return
 
         # Step 3.2: Wait until calculation is done
-        analysis_job_final_status = job_wait(
-            js_client,
-            analysis_job_id,
-            default_job_wait_timeout)
+        analysis_job_final_status = job_wait(js_client, analysis_job_id, default_job_wait_timeout)
         # Step 3.1: Validate job status. If job failed, stop processing and log error.
         validate_job(analysis_job_id, analysis_job_final_status, fms_client, arg_error_files_dir)
         logging.info(f"Analysis calculation (job id: '{analysis_job_id}') has finished. ")
-
 
 def cmd_exec_download_results(current_dir, args, user_credentials, app_config):
     # Get/resolve arguments
@@ -387,11 +352,9 @@ def cmd_exec_download_results(current_dir, args, user_credentials, app_config):
         destination_results_file_name = f"analysis_{arg_analysis_id}_results.zip"
         destination_results_file_path = os.path.join(arg_output_dir, destination_results_file_name)
         fms_client.download_analysis_result_file(arg_analysis_id, destination_results_file_path)
-        logging.info(
-            f"Downloading analysis results to the file '{destination_results_file_path}' "
-            f"in the folder '{arg_output_dir}' has finished.")
+        logging.info(f"Downloading analysis results to the file '{destination_results_file_path}' "
+                     f"in the folder '{arg_output_dir}' has finished.")
         logging.info(f"Analysis run (analysis id: '{arg_analysis_id}') has finished.")
-
 
 def cmd_exec_configure(user_credentials):
     save_to_file_flag = False
@@ -418,7 +381,6 @@ def cmd_exec_configure(user_credentials):
     if save_to_file_flag:
         update_credentials_file(user_credentials)
 
-
 def update_credentials_file(user_credentials):
     credentials_file_path = get_credentials_file_path()
     with contextlib.suppress(FileNotFoundError):
@@ -430,7 +392,6 @@ def update_credentials_file(user_credentials):
     with open(credentials_file_path, "a+") as credentials_file:
         credentials_file.write(f'ma_apic_login="{login_text}"\n')
         credentials_file.write(f'ma_apic_password="{password_text}"\n')
-
 
 def cmn_opt_exec_test_connect(current_dir, args, user_credentials, app_config):
     logging.info(f"Connectivity to the services test has started")
@@ -461,10 +422,8 @@ def cmn_opt_exec_test_connect(current_dir, args, user_credentials, app_config):
         else:
             logging.error('Connectivity to the services test - FAILED')
 
-
 def cmn_opt_exec_version():
     print('API client version 1.0')
-
 
 def get_requests_proxies(app_config):
     result = {}
@@ -474,12 +433,10 @@ def get_requests_proxies(app_config):
 
     return result
 
-
 def append_requests_proxy_form_config(proxies, proxy_name, config, config_item_name):
     proxy = get_config_item(config, config_item_name)
     if proxy is not None:
         proxies[proxy_name] = proxy
-
 
 def get_arg(args, item_name, default=None):
     result = args.__dict__.get(item_name)
@@ -489,15 +446,13 @@ def get_arg(args, item_name, default=None):
 
     return default
 
-
 def get_config_item(config, item_name):
     try:
         return config[item_name]
     except ConfigMissingException:
         return None
 
-
-def job_wait(js_client,  job_id, wait_timeout: timedelta):
+def job_wait(js_client, job_id, wait_timeout: timedelta):
     """
     Waits until job is complete successfully or with failures.
     :param js_client: Job service client
@@ -516,7 +471,6 @@ def job_wait(js_client,  job_id, wait_timeout: timedelta):
 
     raise ApicError(f"Job wait has been terminated by timeout. Job id: {job_id}; timeout: {wait_timeout}.")
 
-
 def validate_job(job_id, job_final_status, fms_client, error_files_dir):
     """
     Validates job for failed statues and downloads errors to the defined directory
@@ -528,11 +482,9 @@ def validate_job(job_id, job_final_status, fms_client, error_files_dir):
     if is_job_failed(job_final_status):
         destination_error_file_path = download_error_file(job_id, job_final_status, fms_client, error_files_dir)
         destination_error_file_abs_path = os.path.abspath(destination_error_file_path)
-        raise ApicError(
-            f"The job 'job type: {job_final_status['type']}; job id: {job_id}' "
-            f"stopped by error with status '{job_final_status['status']}'. "
-            f"The errors are in the file '{destination_error_file_abs_path}'.")
-
+        raise ApicError(f"The job 'job type: {job_final_status['type']}; job id: {job_id}' "
+                        f"stopped by error with status '{job_final_status['status']}'. "
+                        f"The errors are in the file '{destination_error_file_abs_path}'.")
 
 def is_job_failed(job_status):
     """
@@ -544,7 +496,6 @@ def is_job_failed(job_status):
     if job_status['status'] in job_failed_statuses:
         return True
     return False
-
 
 def download_error_file(job_id, job_final_status, fms_client, error_files_dir):
     """
@@ -561,7 +512,6 @@ def download_error_file(job_id, job_final_status, fms_client, error_files_dir):
 
     return destination_error_file_path
 
-
 # ImpairmentStudio™ command to executor mapping
 is_command_executor_mapping = {
     'import': cmd_exec_import,
@@ -569,7 +519,6 @@ is_command_executor_mapping = {
     'download-results': cmd_exec_download_results,
     'configure': cmd_exec_configure,
 }
-
 
 def add_global_options_to_arg_parser(arguments_parser):
     arguments_parser.add_argument(
@@ -585,7 +534,6 @@ def add_global_options_to_arg_parser(arguments_parser):
     #     action='store_true',
     #     help='A switch that enables debug logging')
 
-
 # Define top-level command arguments parser and options
 arg_parser = ArgumentParser('apic is')
 arg_parser.add_argument(
@@ -593,11 +541,10 @@ arg_parser.add_argument(
     action='store_true',
     default=False,
     help='Test connections to the API servers. Test will be performed on APIs that support ping endpoint')
-arg_parser.add_argument(
-    '--version',
-    action='store_true',
-    default=False,
-    help="Displays the version of CLI that's currently used")
+arg_parser.add_argument('--version',
+                        action='store_true',
+                        default=False,
+                        help="Displays the version of CLI that's currently used")
 
 add_global_options_to_arg_parser(arg_parser)
 
@@ -605,90 +552,74 @@ add_global_options_to_arg_parser(arg_parser)
 commands_subparser = arg_parser.add_subparsers(help='ImpairmentStudio™ commands')
 # 'import' command's argument parser
 import_cmd_parser = commands_subparser.add_parser(
-    'import',
-    help='Imports a zip file containing the data files for ImpairmentStudio™ input')
+    'import', help='Imports a zip file containing the data files for ImpairmentStudio™ input')
 import_cmd_parser.set_defaults(is_command_name='import')
 
-import_cmd_parser.add_argument(
-    '--input-zip',
-    required=True,
-    metavar='<path to source zip import file>',
-    help='The local path to the where output files will be copied to')
+import_cmd_parser.add_argument('--input-zip',
+                               required=True,
+                               metavar='<path to source zip import file>',
+                               help='The local path to the where output files will be copied to')
 
-import_cmd_parser.add_argument(
-    '--output-path',
-    metavar='<path to place output files>',
-    help='path to place output files')
+import_cmd_parser.add_argument('--output-path',
+                               metavar='<path to place output files>',
+                               help='path to place output files')
 
-import_cmd_parser.add_argument(
-    '--job-name',
-    metavar='<import job name>',
-    help='The name of the job to help it get identified in the application')
+import_cmd_parser.add_argument('--job-name',
+                               metavar='<import job name>',
+                               help='The name of the job to help it get identified in the application')
 
-import_cmd_parser.add_argument(
-    '--overwrite',
-    action='store_true',
-    default=False,
-    help='Specifies whether to overwrite portfolio of the same name or not')
+import_cmd_parser.add_argument('--overwrite',
+                               action='store_true',
+                               default=False,
+                               help='Specifies whether to overwrite portfolio of the same name or not')
 
 add_global_options_to_arg_parser(import_cmd_parser)
 
 # 'run-analysis' command's argument parser
-run_analysis_cmd_parser = commands_subparser.add_parser(
-    'run-analysis',
-    help='Runs an ImpairmentStudio™ analysis')
+run_analysis_cmd_parser = commands_subparser.add_parser('run-analysis', help='Runs an ImpairmentStudio™ analysis')
 run_analysis_cmd_parser.set_defaults(is_command_name='run-analysis')
 
-run_analysis_cmd_parser.add_argument(
-    '--analysis-id',
-    metavar='<analysis id>',
-    required=True,
-    help='The unique identifier of an analysis that is in ImpairmentStudio™')
+run_analysis_cmd_parser.add_argument('--analysis-id',
+                                     metavar='<analysis id>',
+                                     required=True,
+                                     help='The unique identifier of an analysis that is in ImpairmentStudio™')
 
-run_analysis_cmd_parser.add_argument(
-    '--output-path',
-    metavar='<path to place output files>',
-    help='The local path to the where output files will be downloaded to '
-         'after analysis is completed either with error or successfully')
+run_analysis_cmd_parser.add_argument('--output-path',
+                                     metavar='<path to place output files>',
+                                     help='The local path to the where output files will be downloaded to '
+                                     'after analysis is completed either with error or successfully')
 
-run_analysis_cmd_parser.add_argument(
-    '--no-wait',
-    action='store_true',
-    default=False,
-    help='Do not wait for job completion')
+run_analysis_cmd_parser.add_argument('--no-wait',
+                                     action='store_true',
+                                     default=False,
+                                     help='Do not wait for job completion')
 
 add_global_options_to_arg_parser(run_analysis_cmd_parser)
 
 # 'download-results' command's argument parser
 download_results_cmd_parser = commands_subparser.add_parser(
-    'download-results',
-    help='Downloads the output of an analysis that has been executed')
+    'download-results', help='Downloads the output of an analysis that has been executed')
 download_results_cmd_parser.set_defaults(is_command_name='download-results')
 
-download_results_cmd_parser.add_argument(
-    '--analysis-id',
-    metavar='<analysis id>',
-    required=True,
-    help='The unique identifier of an analysis that is in ImpairmentStudio™')
+download_results_cmd_parser.add_argument('--analysis-id',
+                                         metavar='<analysis id>',
+                                         required=True,
+                                         help='The unique identifier of an analysis that is in ImpairmentStudio™')
 
-download_results_cmd_parser.add_argument(
-    '--output-path',
-    metavar='<path to place output files>',
-    help='The local path to the where output files will be downloaded to '
-         'after analysis is completed either with error or successfully')
+download_results_cmd_parser.add_argument('--output-path',
+                                         metavar='<path to place output files>',
+                                         help='The local path to the where output files will be downloaded to '
+                                         'after analysis is completed either with error or successfully')
 
 add_global_options_to_arg_parser(download_results_cmd_parser)
 
 # 'configure' command's argument parser
 configure_cmd_parser = commands_subparser.add_parser(
-    'configure',
-    help="Prompts for user credentials in saves to user's credential file")
+    'configure', help="Prompts for user credentials in saves to user's credential file")
 configure_cmd_parser.set_defaults(is_command_name='configure')
-
 
 class ApicError(Exception):
     pass
-
 
 def main():
     app_path = sys.path[0]
@@ -718,7 +649,6 @@ def main():
 
     exit_code = execute_command(app_path, commandline_args)
     exit(exit_code)
-
 
 if __name__ == "__main__":
     main()
