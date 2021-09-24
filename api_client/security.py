@@ -5,14 +5,11 @@ import jwt
 import time
 import logging
 
-
 SSO_SVCS_BASE_URL = "https://sso.moodysanalytics.com"
 AUTH_TOKEN_RENEWAL_THRESHOLD_IN_SECONDS = 30
 
-
 class AuthenticationError(Exception):
     pass
-
 
 class Session(object):
     def __init__(self, user_id: str, user_password: str, sso_svcs_base_url: str = SSO_SVCS_BASE_URL, proxies={}):
@@ -75,21 +72,18 @@ class Session(object):
             'scope': 'openid'
         }
 
-        response = requests.post(
-            url,
-            data=request_new_auth_token_data,
-            auth=(self.user_id, self.user_password),
-            proxies=self.proxies
-        )
+        response = requests.post(url,
+                                 data=request_new_auth_token_data,
+                                 auth=(self.user_id, self.user_password),
+                                 proxies=self.proxies)
         response.raise_for_status()
 
         response_body_json = response.json()
         result = response_body_json.get('id_token')
         if result is None or result == "":
-            raise AuthenticationError(
-                f"Authorization token is empty. "
-                f"Authentication token has not been retrieved from "
-                f"SSO service '{self.sso_svcs_base_url} for user '{self.user_id}''.")
+            raise AuthenticationError(f"Authorization token is empty. "
+                                      f"Authentication token has not been retrieved from "
+                                      f"SSO service '{self.sso_svcs_base_url} for user '{self.user_id}''.")
 
         token_type = response_body_json.get('token_type')
         if token_type != 'Bearer':
@@ -130,10 +124,9 @@ class Session(object):
 
     def is_auth_token_renewal(self):
         if self.expiration_datetime is None:
-            raise AuthenticationError(
-                "Error checking renewal time of the authentication token. "
-                "The token's expiration date/time is empty. "
-                "Get authentication token calling get_auth_token() first.")
+            raise AuthenticationError("Error checking renewal time of the authentication token. "
+                                      "The token's expiration date/time is empty. "
+                                      "Get authentication token calling get_auth_token() first.")
 
         time_left = self.expiration_datetime - self.get_current_date_time()
 
@@ -153,17 +146,14 @@ class Session(object):
     def ping(self):
         url_path = "/sso-api/docs/"
         url = urllib.parse.urljoin(self.sso_svcs_base_url, url_path)
-        response = requests.get(
-            url,
-            proxies=self.proxies)
+        response = requests.get(url, proxies=self.proxies)
 
         if response.ok:
             logging.info(f"Single Sing-On (SSO) service connectivity test to '{self.sso_svcs_base_url}' - PASSED")
             return True
         else:
-            logging.error(
-                f"Single Sing-On (SSO) connectivity test to '{self.sso_svcs_base_url}' - FAILED. "
-                f"Status code: {response.status_code}; Reason: {response.reason}")
+            logging.error(f"Single Sing-On (SSO) connectivity test to '{self.sso_svcs_base_url}' - FAILED. "
+                          f"Status code: {response.status_code}; Reason: {response.reason}")
             return False
 
     @staticmethod

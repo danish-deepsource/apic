@@ -4,12 +4,7 @@ import logging
 from api_client.security import Session
 
 # Configure the logger
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s\t%(asctime)s\t%(message)s',
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-
+logging.basicConfig(level=logging.INFO, format='%(levelname)s\t%(asctime)s\t%(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
 class JobServiceClient(object):
     def __init__(self, session: Session, service_base_url):
@@ -28,15 +23,12 @@ class JobServiceClient(object):
     def ping(self):
         url_path = "/job/docs/"
         url = urllib.parse.urljoin(self.service_base_url, url_path)
-        response = requests.get(
-            url,
-            proxies=self.session.proxies)
+        response = requests.get(url, proxies=self.session.proxies)
 
         if response.ok:
             logging.info(f"Job service connectivity test to '{self.service_base_url}' - PASSED")
             return True
         else:
-            logging.error(
-                f"Job service connectivity test to '{self.service_base_url}' - FAILED. "
-                f"Status code: {response.status_code}; Reason: {response.reason}")
+            logging.error(f"Job service connectivity test to '{self.service_base_url}' - FAILED. "
+                          f"Status code: {response.status_code}; Reason: {response.reason}")
             return False
